@@ -11,7 +11,8 @@ const MessageSchema = new Schema({
     },
     artist: {
         type: String,
-        required: true
+        required: false,
+        default: "Timi Erewejoh"
     },
     about: {
         type: String,
@@ -23,9 +24,9 @@ const MessageSchema = new Schema({
     },
     video_url: {
         type: String,
-        required: true
+        required: false
     },
-    series_name: {
+    series_title: {
         type: String,
         required: false
     },
@@ -35,11 +36,13 @@ const MessageSchema = new Schema({
     },
     videoPrice: {
         type: Number,
-        required: true
+        required: false,
+        default: 2
     },
     audioPrice: {
         type: Number,
-        required: true
+        required: false,
+        default: 1
     },
     published: {
         type: Boolean,
@@ -48,7 +51,7 @@ const MessageSchema = new Schema({
     date: {
         type: String,
         required: false,
-        default: Date.now()
+        default: new Date().toDateString()
     }
 });
 

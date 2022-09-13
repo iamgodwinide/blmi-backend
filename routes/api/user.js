@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken");
 const auth = require("../../middlewares/auth");
 const UserMessage = require("../../models/UserMessage");
+const Message = require("../../models/Message");
 
 // GET ALL USERS
 router.get("/", async (_, res) => {
@@ -23,7 +24,7 @@ router.get("/", async (_, res) => {
 });
 
 // GET ONE USER
-router.get("/:id", async (req, res) => {
+router.get("/get-user-by-id/:id", async (req, res) => {
     try {
         const { id } = req.params;
         if (!id) {
@@ -32,7 +33,7 @@ router.get("/:id", async (req, res) => {
                 msg: "user ID is required!"
             });
         }
-        const user = User.findOne({ _id: id });
+        const user = await User.findById(id);
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -44,6 +45,7 @@ router.get("/:id", async (req, res) => {
             user
         });
     } catch (err) {
+        console.log(err)
         return res.status(500).json({
             success: false,
             msg: "Internal server error"
@@ -237,12 +239,72 @@ router.post("/update-profile", auth, async (req, res) => {
     }
 });
 
+// UPDATE USER PASSWORD
+router.post("/update-password", auth, async (req, res) => {
+    try {
+        const {
+            prevPass,
+            newPass,
+            newPass2
+        } = req.body;
+        console.log(req.body);
+
+
+        if (!prevPass || !newPass || !newPass2) {
+            return res.status(400).json({
+                success: false,
+                msg: "Provide Mandatory Fields!"
+            })
+        }
+        if (newPass.length < 6) {
+            return res.status(400).json({
+                success: false,
+                msg: "Password is too short"
+            })
+        }
+        if (newPass !== newPass2) {
+            return res.status(400).json({
+                success: false,
+                msg: "Passwords do not match"
+            })
+        }
+        const user = await User.findById(req.user.id);
+        const passMatch = await bcrypt.compare(prevPass, user.password);
+        const isSame = await bcrypt.compare(newPass, user.password);
+        if (!passMatch) {
+            return res.status(400).json({
+                success: false,
+                msg: "Current password is not correct"
+            });
+        }
+        if (isSame) {
+            return res.status(400).json({
+                success: false,
+                msg: "New password must be different from old password"
+            });
+        }
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(newPass, salt);
+        await User.update({ _id: req.user.id }, {
+            password: hash
+        });
+        return res.status(200).json({
+            success: true,
+            msg: "Password updated"
+        });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            msg: "Internal server error"
+        })
+    }
+})
+
 // BUY TOKEN
 router.post("/buy-token", auth, async (req, res) => {
     try {
         const { userID, token } = req.body;
-        console.log(req.body);
-
         if (!token || !userID) {
             return res.status(400).json({
                 success: false,
@@ -278,27 +340,88 @@ router.post("/buy-token", auth, async (req, res) => {
     }
 });
 
+// SHARE TOKEN
+router.post("/share-token", auth, async (req, res) => {
+    try {
+        const { token, email } = req.body;
+
+        if (!token || !email) {
+            return res.status(400).json({
+                success: false,
+                msg: "Provide mandatory parameters"
+            })
+        };
+
+        const user = await User.findOne({ _id: req.user.id });
+        const recipient = await User.findOne({ email });
+
+        if (!recipient) {
+            return res.status(400).json({
+                success: false,
+                msg: "User with that email does not exist"
+            })
+        }
+
+        if (!user.coins < token) {
+            return res.status(400).json({
+                success: false,
+                msg: "You don't have enough tokens"
+            })
+        }
+
+        await User.updateOne({ _id: req.user.id }, {
+            coins: user.coins - token
+        });
+        await User.updateOne({ email }, {
+            coins: recipient.coins + token
+        });
+        const newUser = await User.findOne({ _id: req.user.id });
+        return res.status(200).json({
+            success: true,
+            msg: "Token purchase successful",
+            user: newUser
+        });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            msg: "Internal server error"
+        })
+    }
+});
+
 // BUY MESSAGE
 router.post("/buy-message", auth, async (req, res) => {
     try {
         const {
-            message,
+            messageID,
             userID,
-            token
+            token,
+            fullPurchase
         } = req.body;
-        if (!message || !userID || !token) {
+        console.log(token)
+        if (!messageID || !userID || !token) {
             return res.status(400).json({
                 success: false,
                 msg: "Provide mandatory fields"
             });
         }
         const user = await User.findOne({ _id: userID });
+        const message = await Message.findOne({ _id: messageID });
         const userHasMessage = await UserMessage.findOne({ user_id: userID, message_id: message._id });
+        if (user.coins < token) {
+            return res.status(400).json({
+                success: false,
+                msg: "Insufficient tokens"
+            });
+        }
         if (userHasMessage) {
+            let msgData = { ...message._doc };
+            delete msgData._id;
             await User.updateOne({ _id: userID }, { coins: user.coins - Number(token) });
             await UserMessage.updateOne({ user_id: userID, message_id: message._id }, {
-                ...userHasMessage,
-                ...message
+                ...userHasMessage._doc,
+                ...msgData,
             });
             return res.status(200).json({
                 success: true,
@@ -306,14 +429,27 @@ router.post("/buy-message", auth, async (req, res) => {
             });
         } else {
             await User.updateOne({ _id: userID }, { coins: user.coins - Number(token) });
-            const newMsg = new UserMessage(message);
+            let msgData = {
+                ...message._doc,
+                message_id: message._id,
+                user_id: user._id
+            };
+            delete msgData._id;
+            console.log(msgData);
+            if (!fullPurchase) {
+                msgData.video_url = "";
+            }
+            const newMsg = new UserMessage(msgData);
             await newMsg.save();
+            const userMessages = await UserMessage.find({ user_id: userID })
             return res.status(200).json({
                 success: true,
+                userMessages,
                 msg: "Message purchased successfully"
             });
         }
     } catch (err) {
+        console.log(err);
         return res.status(500).json({
             success: false,
             msg: "Internal server error"

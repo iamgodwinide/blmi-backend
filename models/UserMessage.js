@@ -23,7 +23,7 @@ const UserMessageSchema = new Schema({
     },
     video_url: {
         type: String,
-        required: true
+        required: false
     },
     series_name: {
         type: String,
@@ -32,18 +32,6 @@ const UserMessageSchema = new Schema({
     seriesID: {
         type: String,
         required: false
-    },
-    videoPrice: {
-        type: Number,
-        required: true
-    },
-    audioPrice: {
-        type: Number,
-        required: true
-    },
-    published: {
-        type: Boolean,
-        required: true
     },
     user_id: {
         type: String,
@@ -56,7 +44,7 @@ const UserMessageSchema = new Schema({
     date: {
         type: String,
         required: false,
-        default: Date.now()
+        default: new Date().toDateString()
     }
 });
 

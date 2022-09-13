@@ -5,8 +5,6 @@ const Devotionals = require("../../models/Devotionals");
 const Department = require("../../models/Department");
 
 
-
-
 const router = require("express").Router();
 
 // GET ALL MESSAGES
@@ -15,7 +13,7 @@ router.get("/messages", async (_, res) => {
         const messages = await Message.find({});
         return res.status(200).json({
             success: true,
-            messages
+            messages: messages.reverse()
         })
     } catch (err) {
         return res.status(500).json({
@@ -54,7 +52,7 @@ router.get("/series", async (_, res) => {
         const series = await Series.find({});
         return res.status(200).json({
             success: true,
-            series
+            series: series.reverse()
         })
     } catch (err) {
         return res.status(500).json({

@@ -65,7 +65,7 @@ const UserSchema = new Schema({
     created: {
         type: String,
         required: false,
-        default: Date.now()
+        default: new Date().toDateString()
     }
 });
 

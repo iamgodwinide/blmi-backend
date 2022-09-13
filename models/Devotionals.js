@@ -24,7 +24,7 @@ const DevShema = new Schema({
     date: {
         type: String,
         required: false,
-        default: Date.now()
+        default: new Date().toDateString()
     }
 })
 
