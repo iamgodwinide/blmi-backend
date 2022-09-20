@@ -91,6 +91,8 @@ router.get("/get-user/:email", async (req, res) => {
 router.get("/send-otp/:email", async (req, res) => {
     try {
         const { email } = req.params;
+        const { reset } = req.query;
+
         if (!email) {
             return res.status(400).json({
                 success: false,
@@ -98,7 +100,7 @@ router.get("/send-otp/:email", async (req, res) => {
             });
         }
         const user = await User.findOne({ email });
-        if (user) {
+        if (user && !reset) {
             return res.status(404).json({
                 success: false,
                 msg: "A user with that email already exists"
@@ -110,9 +112,40 @@ router.get("/send-otp/:email", async (req, res) => {
             msg: "Success, otp has been sent."
         });
     } catch (err) {
+        console.log(err);
         return res.status(500).json({
             success: false,
             msg: "Internal server error"
+        })
+    }
+});
+
+// VALIDATE SERIAL NO
+router.post("/validate-serial-no", async (req, res) => {
+    try {
+        const { serial_no } = req.body;
+        if (!serial_no) {
+            return res.status(400).json({
+                success: false,
+                msg: "please provide a valid reference number"
+            })
+        }
+        const exists = await User.findOne({ serial_no });
+        if (exists) {
+            return res.status(400).json({
+                success: false,
+                msg: "A user with that reference number already exists"
+            })
+        }
+        return res.status(200).json({
+            success: true,
+            msg: "valid reference number"
+        })
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            msg: "Internal Server Error"
         })
     }
 })
@@ -126,10 +159,11 @@ router.post("/register", async (req, res) => {
             nickname,
             email,
             phone,
-            password
+            password,
+            serial_no: serialnumber
         } = req.body;
         // validate fields
-        if (!firstname || !lastname || !email || !phone || !password) {
+        if (!firstname || !lastname || !email || !phone || !password || !serialnumber) {
             return res.status(400).json({
                 success: false,
                 msg: "provide required fields!"
@@ -159,7 +193,8 @@ router.post("/register", async (req, res) => {
             lastname: lastname.toLowerCase(),
             nickname: nickname.toLowerCase() || "",
             email: email.toLowerCase(),
-            phone
+            phone,
+            serialnumber
         });
 
         // encrypt passwrod
@@ -247,7 +282,6 @@ router.post("/update-password", auth, async (req, res) => {
             newPass,
             newPass2
         } = req.body;
-        console.log(req.body);
 
 
         if (!prevPass || !newPass || !newPass2) {
@@ -285,7 +319,7 @@ router.post("/update-password", auth, async (req, res) => {
         }
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(newPass, salt);
-        await User.update({ _id: req.user.id }, {
+        await User.updateOne({ _id: req.user.id }, {
             password: hash
         });
         return res.status(200).json({
@@ -299,7 +333,72 @@ router.post("/update-password", auth, async (req, res) => {
             msg: "Internal server error"
         })
     }
-})
+});
+
+// RESET USER PASSWORD - NO AUTH
+router.post("/reset-password", async (req, res) => {
+    try {
+        const {
+            password,
+            password2,
+            email
+        } = req.body;
+
+        console.log(req.body);
+
+
+        if (!password || !password2 || !email) {
+            return res.status(400).json({
+                success: false,
+                msg: "Provide Mandatory Fields!"
+            })
+        }
+        if (password.length < 6) {
+            return res.status(400).json({
+                success: false,
+                msg: "Password is too short"
+            })
+        }
+        if (password !== password2) {
+            return res.status(400).json({
+                success: false,
+                msg: "Passwords do not match"
+            })
+        }
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                msg: "Could not find a user with that email address."
+            });
+        }
+
+        const isSame = await bcrypt.compare(password, user.password);
+
+        if (isSame) {
+            return res.status(400).json({
+                success: false,
+                msg: "New password must be different from old password"
+            });
+        }
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(password, salt);
+        await User.updateOne({ _id: user._id }, {
+            password: hash
+        });
+        return res.status(200).json({
+            success: true,
+            msg: "Password updated"
+        });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            msg: "Internal server error"
+        })
+    }
+});
 
 // BUY TOKEN
 router.post("/buy-token", auth, async (req, res) => {
@@ -399,7 +498,6 @@ router.post("/buy-message", auth, async (req, res) => {
             token,
             fullPurchase
         } = req.body;
-        console.log(token)
         if (!messageID || !userID || !token) {
             return res.status(400).json({
                 success: false,
@@ -435,7 +533,6 @@ router.post("/buy-message", auth, async (req, res) => {
                 user_id: user._id
             };
             delete msgData._id;
-            console.log(msgData);
             if (!fullPurchase) {
                 msgData.video_url = "";
             }
@@ -455,7 +552,41 @@ router.post("/buy-message", auth, async (req, res) => {
             msg: "Internal server error"
         })
     }
-})
+});
+
+
+// SUBMIT FEEDBACK
+router.post("/submit-feedback", auth, async (req, res) => {
+    try {
+        const { feedback, rating } = req.body;
+        if (!feedback) {
+            return res.status(400).json({
+                success: false,
+                msg: "Provide mandatory parameters"
+            })
+        };
+
+        const user = await User.findOne({ _id: req.user.id });
+
+        if (user) {
+            return res.status(200).json({
+                success: true,
+                msg: "Feedback submitted",
+            });
+        } else {
+            return res.status(500).json({
+                success: false,
+                msg: "Internal server error"
+            })
+        }
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            msg: "Internal server error"
+        })
+    }
+});
 
 
 module.exports = router;

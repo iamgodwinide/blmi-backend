@@ -9,6 +9,15 @@ const UserSchema = new Schema({
         type: String,
         required: true
     },
+    position: {
+        type: String,
+        required: false,
+        default: "Leader"
+    },
+    serialnumber: {
+        type: String,
+        required: true
+    },
     nickname: {
         type: String,
         required: false
@@ -51,7 +60,7 @@ const UserSchema = new Schema({
     coins: {
         type: Number,
         required: false,
-        default: 0
+        default: 5
     },
     approved: {
         type: Boolean,

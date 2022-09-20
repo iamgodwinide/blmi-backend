@@ -7,15 +7,74 @@ const Department = require("../../models/Department");
 
 const router = require("express").Router();
 
-// GET ALL MESSAGES
+// GET MESSAGES
 router.get("/messages", async (_, res) => {
     try {
-        const messages = await Message.find({});
+        const messages = await Message.find({}).limit(20);
         return res.status(200).json({
             success: true,
             messages: messages.reverse()
         })
     } catch (err) {
+        return res.status(500).json({
+            success: false,
+            msg: "internal server error"
+        })
+    }
+});
+
+// GET MESSAGES PAGINATED
+router.get("/messages/pagination/:page", async (req, res) => {
+    try {
+        const { page } = req.params;
+        const allMessages = await Message.find({});
+        const pagesCount = Math.ceil(allMessages.length / 20);
+        let nextPage;
+        if (pagesCount > 0 && page < pagesCount) nextPage = +page + 1;
+        else nextPage = false;
+
+        return res.status(200).json({
+            success: true,
+            nextPage,
+            messages: pagesCount >= 1 ? allMessages.slice((page * 20) - 20, page * 20).reverse() : allMessages.reverse()
+        })
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            msg: "internal server error"
+        })
+    }
+});
+
+// SEARCH MESSAGES
+router.get("/messages/search", async (req, res) => {
+    try {
+        const { keyword, year, searchTerm } = req.query;
+
+        const titleFilter = (text, message) => {
+            if (text?.length > 0 && message.title.toLowerCase().includes(text.toLowerCase())) return true;
+            return false;
+        }
+
+        const yearsFilter = (year, message) => {
+            if (message?.date?.includes(year)) return true;
+            return false;
+        }
+
+        const allMessages = await Message.find({});
+
+        const messages = allMessages.filter(message => {
+            if (yearsFilter(year, message) || titleFilter(keyword, message) || titleFilter(searchTerm, message)) return true;
+            return false
+        });
+
+        return res.status(200).json({
+            success: true,
+            messages
+        })
+    } catch (err) {
+        console.log(err);
         return res.status(500).json({
             success: false,
             msg: "internal server error"

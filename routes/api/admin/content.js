@@ -122,7 +122,7 @@ router.post("/new-message", async (req, res) => {
         const seriesExists = await Series.findById(series);
 
         const newMessage = new Message({
-            title,
+            title: title,
             series_title: seriesExists?.title || "",
             seriesID: seriesExists?._id || "",
             about,
