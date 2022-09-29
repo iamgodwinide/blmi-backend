@@ -65,7 +65,7 @@ router.get("/messages/search", async (req, res) => {
         const allMessages = await Message.find({});
 
         const messages = allMessages.filter(message => {
-            if (yearsFilter(year, message) || titleFilter(keyword, message) || titleFilter(searchTerm, message)) return true;
+            if (yearsFilter(year || "", message) || titleFilter(keyword || "", message) || titleFilter(searchTerm || "", message)) return true;
             return false
         });
 
