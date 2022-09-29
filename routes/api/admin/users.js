@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const { approveUser } = require("../../../mail/sendEmail");
 const User = require("../../../models/User");
 
 
@@ -53,6 +54,7 @@ router.post("/approve/:id", async (req, res) => {
             });
         };
         await User.updateOne({ _id: id }, { approved: true });
+        approveUser(user.email);
         return res.status(200).json({
             success: true,
             msg: "User Approved"

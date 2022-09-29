@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const auth = require("../../middlewares/auth");
 const UserMessage = require("../../models/UserMessage");
 const Message = require("../../models/Message");
+const { sendOTP } = require("../../mail/sendEmail");
 
 // GET ALL USERS
 router.get("/", async (_, res) => {
@@ -106,9 +107,11 @@ router.get("/send-otp/:email", async (req, res) => {
                 msg: "A user with that email already exists"
             })
         }
+        const otp = Math.random().toString().slice(2, 6);
+        await sendOTP(otp, email);
         return res.status(200).json({
             success: true,
-            otp: Math.random().toString().slice(2, 6),
+            otp,
             msg: "Success, otp has been sent."
         });
     } catch (err) {
@@ -344,9 +347,6 @@ router.post("/reset-password", async (req, res) => {
             email
         } = req.body;
 
-        console.log(req.body);
-
-
         if (!password || !password2 || !email) {
             return res.status(400).json({
                 success: false,
@@ -539,8 +539,10 @@ router.post("/buy-message", auth, async (req, res) => {
             const newMsg = new UserMessage(msgData);
             await newMsg.save();
             const userMessages = await UserMessage.find({ user_id: userID })
+            const newUser = await User.findOne({ _id: userID });
             return res.status(200).json({
                 success: true,
+                user: newUser,
                 userMessages,
                 msg: "Message purchased successfully"
             });
