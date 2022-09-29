@@ -17,15 +17,6 @@ const startServer = () => {
     server.use(express.json());
 
 
-
-
-    // routes
-    server.use("/", (req, res, next) => {
-        setTimeout(() => {
-            return next();
-        }, 3000)
-    })
-
     // CLIENT
     server.use("/api/users", require("./routes/api/user"));
     server.use("/api/auth", require("./routes/api/auth"));
@@ -34,6 +25,11 @@ const startServer = () => {
     // ADMIN
     server.use("/api/admin", require("./routes/api/admin/content"));
     server.use("/api/admin", require("./routes/api/admin/users"));
+
+    // Catch 404
+    server.use("*", (req, res) => {
+        return res.status(404).send("Coming Soon...")
+    });
 
 
     const PORT = process.env.PORT || 5000;
