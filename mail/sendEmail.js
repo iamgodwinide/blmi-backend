@@ -81,6 +81,4 @@ const approveUser = async (receipient) => {
 }
 
 
-approveUser("godwinide@gmail.com")
-
 module.exports = { sendOTP, approveUser }
