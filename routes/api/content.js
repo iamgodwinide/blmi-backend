@@ -53,7 +53,7 @@ router.get("/messages/search", async (req, res) => {
         const { keyword, year, searchTerm } = req.query;
 
         const titleFilter = (textCont, message) => {
-            if (textCont?.length > 0 && message.title.toLowerCase().includes(textCont.toLowerCase())) return true;
+            if (textCont.length > 0 && message.title.toLowerCase().includes(textCont.toLowerCase())) return true;
             return false;
         }
 
