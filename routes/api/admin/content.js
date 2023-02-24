@@ -101,7 +101,7 @@ router.post("/messages/delete/:id", async (req, res) => {
                 msg: "user ID is required!"
             });
         }
-        await UserMessage.deleteOne({_id: id});
+        await Message.deleteOne({_id: id});
         return res.status(200).json({
             success: true,
             msg: "Message Deleted successfully"
