@@ -3,6 +3,7 @@ const { mailAccount } = require("../keys");
 
 const sendOTP = async (otp, receipient) => {
     try {
+        console.log(otp)
         let transporter = nodemailer.createTransport({
             host: "smtp.zoho.com",
             port: 587,

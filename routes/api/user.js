@@ -162,11 +162,10 @@ router.post("/register", async (req, res) => {
             nickname,
             email,
             phone,
-            password,
-            serial_no: serialnumber
+            password
         } = req.body;
         // validate fields
-        if (!firstname || !lastname || !email || !phone || !password || !serialnumber) {
+        if (!firstname || !lastname || !email || !phone || !password) {
             return res.status(400).json({
                 success: false,
                 msg: "provide required fields!"
@@ -196,8 +195,7 @@ router.post("/register", async (req, res) => {
             lastname: lastname.toLowerCase(),
             nickname: nickname.toLowerCase() || "",
             email: email.toLowerCase(),
-            phone,
-            serialnumber
+            phone
         });
 
         // encrypt passwrod

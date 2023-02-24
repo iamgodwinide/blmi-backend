@@ -21,6 +21,29 @@ router.get("/messages", async (_, res) => {
     }
 });
 
+// GET ONE MESSAGE
+router.get("/messages/find/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                msg: "ID is required!"
+            });
+        }
+        const message = await Message.find({ _id: id });
+        return res.status(200).json({
+            success: true,
+            message
+        })
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            msg: "internal server error"
+        })
+    }
+});
+
 // GET ALL USER MESSAGES
 router.get("/messages/user/:id", async (req, res) => {
     try {
@@ -146,6 +169,59 @@ router.post("/new-message", async (req, res) => {
         })
     }
 });
+
+
+// EDIT MESSAGE
+router.post("/edit-message", async (req, res) => {
+    try {
+        const {
+            title,
+            series,
+            about,
+            artwork,
+            audio,
+            video,
+            published,
+            msg_id
+        } = req.body;
+
+        if (!title || !about || !series || !msg_id) {
+            return res.status(400).json({
+                success: false,
+                msg: "Provide Mandatory fields"
+            });
+        }
+
+        const seriesExists = await Series.findById(series);
+        const prev_msg = await Message.findById(msg_id);
+
+        const update = new Message({
+            title: title || prev_msg.title,
+            series_title: seriesExists?.title || "",
+            seriesID: seriesExists?._id || "",
+            about: about || prev_msg.about,
+            artwork: artwork || prev_msg.artwork,
+            url: audio || prev_msg.url,
+            video_url: video || prev_msg.video_url,
+            published
+        });
+
+        await prev_msg.updateOne(update);
+        return res.status(200).json({
+            success: true,
+            msg: "Message updated successfully"
+        })
+
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            msg: "internal server error"
+        })
+    }
+});
+
+
 
 // GET ALL DEVOTIONALS
 router.get("/devotionals", async (_, res) => {

@@ -14,10 +14,6 @@ const UserSchema = new Schema({
         required: false,
         default: "Leader"
     },
-    serialnumber: {
-        type: String,
-        required: true
-    },
     nickname: {
         type: String,
         required: false
@@ -50,10 +46,6 @@ const UserSchema = new Schema({
         required: false
     },
     dob: {
-        type: String,
-        required: false
-    },
-    serial_no: {
         type: String,
         required: false
     },
