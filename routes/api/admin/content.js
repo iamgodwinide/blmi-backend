@@ -206,7 +206,7 @@ router.post("/edit-message", async (req, res) => {
             published
         });
 
-        await prev_msg.updateOne(update);
+        await Message.updateOne({_id: msg_id}, update);
         return res.status(200).json({
             success: true,
             msg: "Message updated successfully"
