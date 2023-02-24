@@ -132,6 +132,29 @@ router.get("/series", async (_, res) => {
     }
 });
 
+// GET ONE SERIES
+router.get("/series/find/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                msg: "ID is required!"
+            });
+        }
+        const series = await Series.findOne({ _id: id });
+        return res.status(200).json({
+            success: true,
+            series
+        })
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            msg: "internal server error"
+        })
+    }
+});
+
 
 // CREATE NEW SERIES
 router.post("/new-series", async (req, res) => {
