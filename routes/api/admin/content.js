@@ -193,6 +193,42 @@ router.post("/new-series", async (req, res) => {
     }
 })
 
+// EDIT SERIES
+router.post(`/series/edit/${id}`, async (req, res) => {
+    try {
+        const {
+            title,
+            artwork,
+            published,
+            seriesId
+        } = req.body;
+
+        if (!title) {
+            return res.status(400).json({
+                success: false,
+                msg: "Provide mandatory fileds"
+            });
+        }
+        const update = {
+            title,
+            artwork: artwork || "",
+            published
+        };
+        await Series.updateOne({_id: seriesId}, update);
+        return res.status(200).json({
+            success: true,
+            msg: "Series updated successfully"
+        });
+
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            msg: "internal server error"
+        })
+    }
+})
+
 // CREATE NEW MESSAGE
 router.post("/new-message", async (req, res) => {
     try {
@@ -240,6 +276,7 @@ router.post("/new-message", async (req, res) => {
         })
     }
 });
+
 
 
 // EDIT MESSAGE
