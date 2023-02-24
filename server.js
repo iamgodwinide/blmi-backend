@@ -25,6 +25,7 @@ const startServer = () => {
     // ADMIN
     server.use("/api/admin", require("./routes/api/admin/content"));
     server.use("/api/admin", require("./routes/api/admin/users"));
+    server.use("/api/admin", require("./routes/api/admin/auth"));
 
     // Catch 404
     server.use("*", (req, res) => {
