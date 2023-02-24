@@ -194,7 +194,7 @@ router.post("/new-series", async (req, res) => {
 })
 
 // EDIT SERIES
-router.post(`/series/edit/${id}`, async (req, res) => {
+router.post(`/series/edit/:id`, async (req, res) => {
     try {
         const {
             title,
