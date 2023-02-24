@@ -20,9 +20,13 @@ router.post("/add-admin-acc", async (req, res) => {
                 msg: "user with that username already exists"
             })
         }
+
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(password, salt);
+
         const newAcc = new User({
             username,
-            password
+            password: hash
         });
         await newAcc.save();
         return res.status(200).json({
