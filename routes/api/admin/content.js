@@ -67,6 +67,54 @@ router.get("/messages/user/:id", async (req, res) => {
     }
 });
 
+
+// GET ONE MESSAGE
+router.get("/messages/find/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                msg: "ID is required!"
+            });
+        }
+        const message = await Message.find({ _id: id });
+        return res.status(200).json({
+            success: true,
+            message
+        })
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            msg: "internal server error"
+        })
+    }
+});
+
+// GET ALL USER MESSAGES
+router.post("/messages/delete/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                msg: "user ID is required!"
+            });
+        }
+        await UserMessage.deleteOne({_id: id});
+        return res.status(200).json({
+            success: true,
+            msg: "Message Deleted successfully"
+        })
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            msg: "internal server error"
+        })
+    }
+});
+
+
 // GET ALL SERIES
 router.get("/series", async (_, res) => {
     try {
