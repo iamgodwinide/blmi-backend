@@ -195,7 +195,7 @@ router.post("/edit-message", async (req, res) => {
         const seriesExists = await Series.findById(series);
         const prev_msg = await Message.findById(msg_id);
 
-        const update = new Message({
+        const update = {
             title: title || prev_msg.title,
             series_title: seriesExists?.title || "",
             seriesID: seriesExists?._id || "",
@@ -204,7 +204,7 @@ router.post("/edit-message", async (req, res) => {
             url: audio || prev_msg.url,
             video_url: video || prev_msg.video_url,
             published
-        });
+        };
 
         console.log(update)
 
