@@ -127,7 +127,7 @@ router.get("/devotionals", async (_, res) => {
         const devotionals = await Devotionals.find({});
         return res.status(200).json({
             success: true,
-            devotionals
+            devotionals: devotionals.reverse()
         })
     } catch (err) {
         return res.status(500).json({
