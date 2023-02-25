@@ -91,7 +91,7 @@ router.get("/messages/find/:id", async (req, res) => {
     }
 });
 
-// GET ALL USER MESSAGES
+// DELETE MESSAGE
 router.post("/messages/delete/:id", async (req, res) => {
     try {
         const { id } = req.params;
@@ -227,7 +227,30 @@ router.post(`/series/edit/:id`, async (req, res) => {
             msg: "internal server error"
         })
     }
-})
+});
+
+// DELETE SERIES
+router.post("/series/delete/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                msg: "ID is required!"
+            });
+        }
+        await Series.deleteOne({_id: id});
+        return res.status(200).json({
+            success: true,
+            msg: "Series Deleted successfully"
+        })
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            msg: "internal server error"
+        })
+    }
+});
 
 // CREATE NEW MESSAGE
 router.post("/new-message", async (req, res) => {
