@@ -272,24 +272,43 @@ router.post("/new-message", async (req, res) => {
             });
         }
 
-        const seriesExists = await Series.findById(series);
+        if(series){
+            const seriesExists = await Series.findById(series);
 
-        const newMessage = new Message({
-            title: title,
-            series_title: seriesExists?.title || "",
-            seriesID: seriesExists?._id || "",
-            about,
-            artwork,
-            url: audio,
-            video_url: video || "",
-            published
-        });
+            const newMessage = new Message({
+                title: title,
+                series_title: seriesExists?.title || "",
+                seriesID: seriesExists?._id || "",
+                about,
+                artwork,
+                url: audio,
+                video_url: video || "",
+                published
+            });
 
-        await newMessage.save();
-        return res.status(200).json({
-            success: true,
-            msg: "Message uploaded successfully"
-        })
+            await newMessage.save();
+            return res.status(200).json({
+                success: true,
+                msg: "Message uploaded successfully"
+            })
+        }else{
+            const newMessage = new Message({
+                title: title,
+                series_title: "",
+                seriesID: "",
+                about,
+                artwork,
+                url: audio,
+                video_url: video || "",
+                published
+            });
+
+            await newMessage.save();
+            return res.status(200).json({
+                success: true,
+                msg: "Message uploaded successfully"
+            })
+        }
 
     } catch (err) {
         console.log(err);
