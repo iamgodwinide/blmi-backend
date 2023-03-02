@@ -335,16 +335,17 @@ router.post("/edit-message", async (req, res) => {
             msg_id
         } = req.body;
 
-        if (!title || !about || !series || !msg_id) {
+        if (!title || !about || !msg_id) {
             return res.status(400).json({
                 success: false,
                 msg: "Provide Mandatory fields"
             });
         }
 
+
+       if(series){
         const seriesExists = await Series.findById(series);
         const prev_msg = await Message.findById(msg_id);
-
         const update = {
             title: title || prev_msg.title,
             series_title: seriesExists?.title || "",
@@ -356,13 +357,30 @@ router.post("/edit-message", async (req, res) => {
             published
         };
 
-        console.log(update)
+        await Message.updateOne({_id: msg_id}, update);
+        return res.status(200).json({
+            success: true,
+            msg: "Message updated successfully"
+        })
+       }else{
+        const prev_msg = await Message.findById(msg_id);
+        const update = {
+            title: title || prev_msg.title,
+            series_title: "",
+            seriesID:  "",
+            about: about || prev_msg.about,
+            artwork: artwork || prev_msg.artwork,
+            url: audio || prev_msg.url,
+            video_url: video || prev_msg.video_url,
+            published
+        };
 
         await Message.updateOne({_id: msg_id}, update);
         return res.status(200).json({
             success: true,
             msg: "Message updated successfully"
         })
+       }
 
     } catch (err) {
         console.log(err);
