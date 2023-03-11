@@ -12,7 +12,7 @@ router.post("/login", async (req, res) => {
                 msg: "Please provide mandatory parameters!"
             });
         }
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email: email.toLowerCase() });
         if (!user) {
             return res.status(400).json({
                 success: false,
