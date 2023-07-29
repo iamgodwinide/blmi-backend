@@ -26,7 +26,7 @@ const sendOTP = async (otp, receipient) => {
                 <p style="font-size:1.4em">Hi,</p>
                 <p>Use the following OTP to complete your procedures. Ignore if you didn't request for this.</p>
                 <h2 style="background: #00466a;margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;">${otp}</h2>
-                <p style="font-size:0.9em;">Regards,<br />Lover Blazers MObile</p>
+                <p style="font-size:0.9em;">Regards,<br />Lover Blazers Mobile</p>
                 <hr style="border:none;border-top:1px solid #eee" />
                 <div style="float:right;padding:8px 0;color:#aaa;font-size:0.8em;line-height:1;font-weight:300">
                 <p>Blaze Of Love Ministries Int'l</p>
