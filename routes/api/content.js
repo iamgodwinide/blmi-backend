@@ -58,7 +58,9 @@ router.get("/messages/search", async (req, res) => {
         }
 
         const yearsFilter = (year, message) => {
-            if (message?.date?.includes(year)) return true;
+            if (typeof message !== 'undefined') {
+                if (message?.date?.includes(year)) return true;
+            }
             return false;
         }
 
